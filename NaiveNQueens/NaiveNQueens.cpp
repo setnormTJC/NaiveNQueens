@@ -197,6 +197,7 @@ auto removeDiagonals(vector<vector<vector<string>>> boardsWithNoTwoQueensOnSameR
 
 int main()
 {
+	//
 	const int N = 4;
 
 	vector<vector<string>> chessboard;
