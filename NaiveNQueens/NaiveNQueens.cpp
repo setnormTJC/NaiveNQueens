@@ -13,9 +13,9 @@ using std::vector;
 using std::left;
 using std::setw;
 
-long long factorial(int N)
+double factorial(int N)
 {
-	long long result = 1;
+	double result = 1;
 	for (int i = N; i > 0; i--)
 	{
 		result *= i;
@@ -25,10 +25,10 @@ long long factorial(int N)
 }
 
 /*see https://cs.stackexchange.com/questions/152328/n-queens-problem-number-of-possible-placements*/
-long long getNumberOfWaysToPlaceNObjects_OnNxNGrid(int N)
+double getNumberOfWaysToPlaceNObjects_OnNxNGrid(int N)
 {
-	long long numerator = factorial(pow(N, 2));
-	long long denominator = factorial(pow(N, 2) - N);
+	double numerator = factorial(pow(N, 2));
+	double denominator = factorial(pow(N, 2) - N);
 
 	return numerator / denominator;
 }
@@ -97,16 +97,15 @@ bool areQueensOnSameDiagonal(vector<Position> positions)
 	return false;
 }
 
-auto generateGrids_WithNoTwoQueensOnSameRowOrColumn(vector<vector<string>>& chessboard)
+auto generateNQueensGrids(vector<vector<string>>& chessboard)
 {
-	vector<vector<vector<string>>> boardsWithNoTwoQueensOnSameRowOrColumn;
+	vector<vector<vector<string>>> nQueensBoardsList;
 
 	int numberOfPossibleBoards = 0;
 
-	/*make all possible boards with no two queens in same loc*/
 	for (int Q1 = 0; Q1 < chessboard.size(); Q1++)
 	{
-		for (int Q2 = 0; Q2 < chessboard.size(); Q2++) //Q2 excluded from column 0 (because Q1 is there) 
+		for (int Q2 = 0; Q2 < chessboard.size(); Q2++) 
 		{
 			if (Q1 == Q2)
 			{
@@ -119,39 +118,45 @@ auto generateGrids_WithNoTwoQueensOnSameRowOrColumn(vector<vector<string>>& ches
 				{
 					continue;
 				}
-				for (int Q4 = 0; Q4 < chessboard.size(); Q4++) //Q4 will ONLY go in 4th column 
+				for (int Q4 = 0; Q4 < chessboard.size(); Q4++)  
 					//N(N-1)(N-2)...1 = N! loop iters
 				{
 					if (Q1 == Q4 || Q2 == Q4 || Q3 == Q4)
 					{
 						continue;
 					}
-
-					vector<Position> positions =
+					//for 5 queens 
+					for (int Q5 = 0; Q5 < chessboard.size(); Q5++)
 					{
-						{0, Q1},
-						{1, Q2},
-						{2, Q3},
-						{3, Q4}
-					};
+						if (Q1 == Q5 || Q2 == Q5 || Q3 == Q5 || Q4 == Q5)
+						{
+							continue; 
+						}
 
-					if (areQueensOnSameDiagonal(positions)) {
-						continue;
+						vector<Position> positions =
+						{
+							{0, Q1},
+							{1, Q2},
+							{2, Q3},
+							{3, Q4}, 
+							{4, Q5}
+						};
+
+						if (areQueensOnSameDiagonal(positions)) {
+							continue;
+						}
+
+						chessboard[0][Q1] = "Q1"; //NOTE - earlier version of this prog. had Q1
+						chessboard[1][Q2] = "Q2";//"Q2"
+						chessboard[2][Q3] = "Q3";//"Q3"
+						chessboard[3][Q4] = "Q4";//etc.
+						chessboard[4][Q5] = "Q5";
+
+						numberOfPossibleBoards++;
+
+						nQueensBoardsList.push_back(chessboard);
+
 					}
-
-					chessboard[0][Q1] = "Q"; //NOTE - earlier version of this prog. had Q1
-					chessboard[1][Q2] = "Q";//"Q2"
-					chessboard[2][Q3] = "Q";//"Q3"
-					chessboard[3][Q4] = "Q";//etc.
-
-					numberOfPossibleBoards++;
-
-					boardsWithNoTwoQueensOnSameRowOrColumn.push_back(chessboard);
-
-					//printChessBoard(chessboard);
-
-					//cout << "Next possible board ...\n\n\n";
-					//system("pause"); 
 					reinitializeBoard(chessboard);
 
 				}
@@ -159,46 +164,13 @@ auto generateGrids_WithNoTwoQueensOnSameRowOrColumn(vector<vector<string>>& ches
 		}
 	}
 
-	return boardsWithNoTwoQueensOnSameRowOrColumn;
-}
-
-
-
-auto removeDiagonals(vector<vector<vector<string>>> boardsWithNoTwoQueensOnSameRowOrColumn)
-{
-	vector<vector<vector<string>>> boardsThatSatisfyNQueens;
-
-
-	for (auto& currentBoard : boardsWithNoTwoQueensOnSameRowOrColumn)
-	{
-		bool doesBoardSatisfyNQueens = false;
-
-		//check if any two queens are on diagonal ...
-		//https://developers.google.com/optimization/cp/queens
-
-		//one of the following conditions must be true:
-
-		//1) The row number PLUS the column number for each of the two queens are equal
-		//	[ascending diagonal] -> from left to right 
-		//OR 
-		//2) The row number MINUS the column number for each of the two queens are equal.
-		//	[descending diagonal] -> again, from left to right 
-
-		//vector<Position> queenPositions; 
-		//std::find
-
-		if (doesBoardSatisfyNQueens)
-		{
-			boardsThatSatisfyNQueens.push_back(currentBoard);
-		}
-	}
-	return boardsThatSatisfyNQueens;
+	return nQueensBoardsList;
 }
 
 int main()
 {
 	//
-	const int N = 4;
+	const int N = 5;
 
 	vector<vector<string>> chessboard;
 	//using string instead of char because
@@ -222,16 +194,16 @@ int main()
 		<< " grid is: " << getNumberOfWaysToPlaceNObjects_OnNxNGrid(N) << "\n";
 
 	//cout << "\n\nThe possible grids with no two queens in same row OR same column\n\n";
-	auto boardsWithNoTwoQueensOnSameRowOrColumn =
-		generateGrids_WithNoTwoQueensOnSameRowOrColumn(chessboard);
+	auto nQueensBoardsList =
+		generateNQueensGrids(chessboard);
 
 	cout << "\n\nNumber of boards without queens on same row or column for N = "
-		<< chessboard.size() << ": " << boardsWithNoTwoQueensOnSameRowOrColumn.size() << "\n";
+		<< chessboard.size() << ": " << nQueensBoardsList.size() << "\n";
 	cout << "COINCIDENTALLY, N! = " << factorial(chessboard.size()) << "\n";
 	cout << "\n\n\n";
 
-	cout << "These " << boardsWithNoTwoQueensOnSameRowOrColumn.size() << " boards are: \n";
-	for (auto& currentBoard : boardsWithNoTwoQueensOnSameRowOrColumn)
+	cout << "These " << nQueensBoardsList.size() << " boards are: \n";
+	for (auto& currentBoard : nQueensBoardsList)
 	{
 		printChessBoard(currentBoard);
 		cout << "\n\n";
